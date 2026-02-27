@@ -1,0 +1,5 @@
+node_modules
+.env
+demo_persistence.json
+package-lock.json
+.DS_Store
