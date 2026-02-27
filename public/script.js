@@ -1,4 +1,9 @@
-const socket = io();
+// detect if we need to point to a production backend (Render)
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? ''
+    : 'https://manit-chat-app.onrender.com'; // Replace with your actual Render URL
+
+const socket = io(API_BASE);
 
 // State
 let currentUser = null;
@@ -70,7 +75,7 @@ loginBtn.addEventListener('click', async () => {
     loginBtn.disabled = true;
 
     try {
-        const response = await fetch('/api/login', {
+        const response = await fetch(`${API_BASE}/api/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -149,7 +154,7 @@ confirmGroupBtn.addEventListener('click', async () => {
     const selectedMembers = Array.from(memberSelector.querySelectorAll('input:checked')).map(cb => cb.value);
 
     try {
-        const response = await fetch('/api/groups', {
+        const response = await fetch(`${API_BASE}/api/groups`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -171,8 +176,8 @@ confirmGroupBtn.addEventListener('click', async () => {
 async function loadChats() {
     try {
         const [groupsRes, usersRes] = await Promise.all([
-            fetch('/api/groups', { headers: { 'x-user-id': currentUser.studentId } }),
-            fetch('/api/users')
+            fetch(`${API_BASE}/api/groups`, { headers: { 'x-user-id': currentUser.studentId } }),
+            fetch(`${API_BASE}/api/users`)
         ]);
 
         currentGroups = await groupsRes.json();
@@ -268,7 +273,7 @@ async function selectChat(chat, isGroup) {
 
     // Load history
     try {
-        const response = await fetch(`/api/messages/${activeChatId}`, {
+        const response = await fetch(`${API_BASE}/api/messages/${activeChatId}`, {
             headers: { 'x-user-id': currentUser.studentId }
         });
         const messages = await response.json();
