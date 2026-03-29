@@ -258,15 +258,21 @@ app.post('/api/community/posts', async (req, res) => {
       likes: [], 
       createdAt: new Date() 
     };
-    try {
-      const post = new CommunityPost(postData);
-      await post.save();
-      res.json(post);
-    } catch (dbErr) {
-      memPosts.push(postData);
-      saveToDemoFile();
-      res.json(postData);
+
+    // Only use Mongoose if connected, otherwise fallback to Demo Mode
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const post = new CommunityPost(postData);
+        await post.save();
+        return res.json(post);
+      } catch (dbErr) {
+        console.error('DB Post Save Error, falling back to mem:', dbErr);
+      }
     }
+
+    memPosts.push(postData);
+    saveToDemoFile();
+    res.json(postData);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

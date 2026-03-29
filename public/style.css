@@ -598,6 +598,31 @@ header {
     background: var(--msg-outgoing);
 }
 
+.avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #2a3942;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #8696a0;
+    font-size: 1.2rem;
+}
+
+.avatar-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-container {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
 .msg-sender {
     font-size: 0.8em;
     font-weight: bold;
@@ -721,6 +746,16 @@ header {
 
 .user-list-mini {
     margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.who-to-follow h4 {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .suggested-user {
@@ -1114,5 +1149,38 @@ header {
 
     .chat-info {
         padding-bottom: 5px;
+    }
+}
+/* Front Page Mobile Refinements */
+@media (max-width: 480px) {
+    .landing-title { 
+        font-size: 1.8em !important; 
+        margin-bottom: 15px !important;
+    }
+    .landing-subtitle { 
+        font-size: 1rem !important; 
+        margin-bottom: 30px !important;
+    }
+    
+    .hero-actions {
+        margin-bottom: 40px !important;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .landing-btn {
+        width: 100% !important;
+        justify-content: center;
+    }
+
+    .marquee-section {
+        padding: 25px 0 !important;
+        margin: 40px 0 !important;
+        transform: rotate(-1deg) scale(1.1) !important;
+    }
+
+    .marquee-content span {
+        font-size: 1.1rem !important;
     }
 }

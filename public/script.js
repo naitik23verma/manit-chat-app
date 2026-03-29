@@ -1,7 +1,5 @@
-// detect if we need to point to a production backend (Render)
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? ''
-    : 'https://manit-chat-app.onrender.com'; // Replace with your actual Render URL
+// Relative paths for production stability (Vercel/Render unified)
+const API_BASE = ''; 
 
 const socket = io(API_BASE);
 
@@ -568,7 +566,20 @@ if (communityBackBtn) {
 
 async function showCommunityPage() {
     communityPage.style.display = 'flex';
-    document.getElementById('composer-avatar').src = currentUser.photoUrl || 'https://via.placeholder.com/40';
+    const compAvatar = document.getElementById('composer-avatar');
+    if (currentUser.photoUrl) {
+        compAvatar.src = currentUser.photoUrl;
+        compAvatar.style.display = 'block';
+    } else {
+        compAvatar.style.display = 'none';
+        // Insert placeholder if not already there
+        if (!compAvatar.parentElement.querySelector('.avatar-placeholder')) {
+            const ph = document.createElement('div');
+            ph.className = 'avatar-placeholder';
+            ph.innerHTML = '<i class="fas fa-user"></i>';
+            compAvatar.parentElement.prepend(ph);
+        }
+    }
     
     // Initial Load
     await Promise.all([
@@ -618,7 +629,9 @@ function renderFeed() {
         div.innerHTML = `
             <div class="post-header">
                 <div class="post-author">
-                    <img src="${post.authorPhoto || 'https://via.placeholder.com/40'}" class="avatar-small">
+                    <div class="avatar-container">
+                        ${post.authorPhoto ? `<img src="${post.authorPhoto}" class="avatar-small" onerror="this.parentElement.innerHTML='<div class=\'avatar-placeholder\'><i class=\'fas fa-user\'></i></div>'">` : `<div class="avatar-placeholder"><i class="fas fa-user"></i></div>`}
+                    </div>
                     <div>
                         <div style="font-weight:600;">${post.authorName}</div>
                         <div style="font-size:0.8em; color:var(--text-secondary);">${new Date(post.createdAt).toLocaleDateString()}</div>
@@ -765,7 +778,9 @@ async function loadSuggestedUsers() {
         div.className = 'suggested-user';
         div.innerHTML = `
             <div style="display:flex; align-items:center; gap:8px;">
-                <img src="${user.photoUrl || 'https://via.placeholder.com/40'}" class="avatar-small">
+                <div class="avatar-container">
+                    ${user.photoUrl ? `<img src="${user.photoUrl}" class="avatar-small" onerror="this.parentElement.innerHTML='<div class=\'avatar-placeholder\'><i class=\'fas fa-user\'></i></div>'">` : `<div class="avatar-placeholder"><i class="fas fa-user"></i></div>`}
+                </div>
                 <span style="font-size:0.9em;">${user.fullName}</span>
             </div>
             <button class="btn-follow" onclick="toggleFollow('${user.studentId}')">Follow</button>
