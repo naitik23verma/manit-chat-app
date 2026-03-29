@@ -6,14 +6,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MANIT Chat - Connect with Peers</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 </head>
 
 <body>
     <div id="app">
+        <!-- Landing Page -->
+        <div id="landing-page" class="landing-page">
+            
+            <!-- Glassmorphic Top Nav -->
+            <nav class="top-nav">
+                <div class="nav-logo">MANIT <span class="highlight">Connect</span></div>
+                <div class="nav-links">
+                    <div id="nav-user-container" class="nav-user-container" style="display: none;">
+                        <button class="nav-login-btn user-name-display" id="nav-user-btn">Name</button>
+                        <div id="nav-logout-menu" class="logout-menu">
+                            <button id="nav-logout-exec-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                        </div>
+                    </div>
+                    <button class="nav-login-btn" id="nav-login-btn">Login</button>
+                </div>
+            </nav>
+
+            <div class="landing-hero">
+                <div class="landing-content">
+                    <div class="landing-text">
+                        <h1 class="landing-title">MANIT <span class="highlight">Connect</span></h1>
+                        <p class="landing-subtitle">Peer chat reinvented for a modern campus. Connect, collaborate, and chat securely.</p>
+                        <div class="landing-btns">
+                            <button id="get-started-btn" class="landing-btn">Get Started <i class="fas fa-arrow-right"></i></button>
+                            <button id="join-community-btn" class="landing-btn community-btn-alt">Join Coding Community <i class="fas fa-code"></i></button>
+                        </div>
+                    </div>
+                    <div class="landing-animation">
+                        <div id="lottie-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto-scrolling Marquee -->
+            <div class="marquee-section">
+                <div class="marquee-container">
+                    <div class="marquee-content">
+                        <span>STUDY FASTER ✦</span>
+                        <span>PEER-TO-PEER ✦</span>
+                        <span>MANIT EXCLUSIVE ✦</span>
+                        <span>NO DELAYS ✦</span>
+                        <span>REAL-TIME ✦</span>
+                    </div>
+                    <div class="marquee-content">
+                        <span>STUDY FASTER ✦</span>
+                        <span>PEER-TO-PEER ✦</span>
+                        <span>MANIT EXCLUSIVE ✦</span>
+                        <span>NO DELAYS ✦</span>
+                        <span>REAL-TIME ✦</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="features-section">
+                <h2 class="features-title">Why MANIT Connect?</h2>
+                <div class="features-container">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                        <h3>Real-time Messaging</h3>
+                        <p>Instant delivery with WebSockets. Never miss a message from your peers.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-users"></i></div>
+                        <h3>Study Groups</h3>
+                        <p>Create private or public rooms. Collaborate on assignments effortlessly.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-id-card"></i></div>
+                        <h3>ERP Integration</h3>
+                        <p>Secure login using your official MANIT ERP credentials. Verified students only.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="background-decorations">
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="floating-shape shape-1"><i class="fas fa-circle"></i></div>
+                <div class="floating-shape shape-2"><i class="fas fa-square"></i></div>
+                <div class="floating-shape shape-3"><i class="fas fa-play"></i></div>
+            </div>
+        </div>
+
         <!-- Login Page -->
         <div id="login-page">
+            <button id="back-to-landing-btn" class="back-btn"><i class="fas fa-arrow-left"></i> Back</button>
             <div class="login-card">
                 <div style="font-size: 50px; color: var(--whatsapp-green); margin-bottom: 20px;">
                     <i class="fas fa-graduation-cap"></i>
@@ -46,15 +136,15 @@
                             style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size: 1.2em; margin-right: 10px;">
                             <i class="fas fa-users"></i> +
                         </button>
-                        <button id="logout-btn" title="Logout"
+                        <button id="chat-back-btn" title="Back to Landing"
                             style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size: 1.2em;">
-                            <i class="fas fa-sign-out-alt"></i>
+                            <i class="fas fa-arrow-left"></i>
                         </button>
                     </div>
                 </header>
 
                 <div class="search-bar" style="padding: 10px; background: var(--sidebar-bg);">
-                    <input type="text" placeholder="Search chats"
+                    <input type="text" id="chat-search-input" placeholder="Search chats"
                         style="width:100%; padding: 8px; border-radius: 8px; background: var(--header-bg); border:none; color:var(--text-primary); outline:none;">
                 </div>
 
@@ -94,7 +184,80 @@
                 </div>
             </main>
         </div>
+
+        <!-- Coding Community Page -->
+        <div id="community-page" style="display: none;">
+            <!-- Mobile Community Header -->
+            <div class="community-mobile-header">
+                <button id="comm-sidebar-toggle" class="comm-toggle-btn"><i class="fas fa-bars"></i></button>
+                <div class="nav-logo">Community</div>
+                <button id="mobile-community-back-btn" class="back-btn-small"><i class="fas fa-comments"></i></button>
+            </div>
+
+            <aside id="community-sidebar" class="community-sidebar">
+                <header class="sidebar-header">
+                    <div class="nav-logo">Community</div>
+                    <button class="close-sidebar-btn" id="comm-sidebar-close"><i class="fas fa-times"></i></button>
+                    <button id="community-back-btn" class="back-btn-small" title="Back to Chat">
+                        <i class="fas fa-comments"></i>
+                    </button>
+                </header>
+                <div class="community-nav">
+                    <button class="comm-nav-item active" data-tab="global"><i class="fas fa-globe"></i> Global Feed</button>
+                    <button class="comm-nav-item" data-tab="following"><i class="fas fa-user-friends"></i> Following</button>
+                </div>
+                <div class="who-to-follow">
+                    <h4>Who to follow</h4>
+                    <div id="suggested-users" class="user-list-mini">
+                        <!-- Suggestions here -->
+                    </div>
+                </div>
+            </aside>
+
+            <main class="community-main">
+                <div class="community-feed-container">
+                    <!-- Post Composer -->
+                    <div class="post-composer card">
+                        <div class="composer-header">
+                            <img id="composer-avatar" src="" class="avatar-small">
+                            <textarea id="post-content" placeholder="Share a coding tip or a blog post... (Text required)"></textarea>
+                        </div>
+                        
+                        <div class="composer-links" style="padding: 0 15px; display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                            <div class="input-group">
+                                <i class="fab fa-github"></i>
+                                <input type="text" id="post-github" placeholder="GitHub Repository URL (Optional)">
+                            </div>
+                            <div class="input-group">
+                                <i class="fas fa-link"></i>
+                                <input type="text" id="post-deploy" placeholder="Live Deployment URL (Optional)">
+                            </div>
+                        </div>
+
+                        <div id="code-input-area" style="display: none; margin-top: 10px;">
+                            <select id="code-lang" class="code-select">
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="cpp">C++</option>
+                                <option value="html">HTML/CSS</option>
+                            </select>
+                            <textarea id="post-code" placeholder="Paste your code snippet here..." class="code-textarea"></textarea>
+                        </div>
+                        <div class="composer-actions">
+                            <button id="toggle-code-btn" class="action-btn-text"><i class="fas fa-code"></i> Add Code</button>
+                            <button id="submit-post-btn" class="btn-primary-small">Post</button>
+                        </div>
+                    </div>
+
+                    <!-- Feed -->
+                    <div id="community-feed" class="community-feed">
+                        <!-- Posts here -->
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
+
 
     <!-- New Group Modal -->
     <div id="group-modal" class="modal">

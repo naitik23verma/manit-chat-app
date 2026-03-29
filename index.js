@@ -13,6 +13,8 @@ const fs = require('fs');
 const User = require('./models/User');
 const Message = require('./models/Message');
 const Group = require('./models/Group');
+const CommunityPost = require('./models/CommunityPost');
+const Follow = require('./models/Follow');
 
 const DATA_FILE = './demo_persistence.json';
 const httpsAgent = new https.Agent({
@@ -42,6 +44,8 @@ mongoose.connect(process.env.MONGODB_URI, { bufferCommands: false })
 let memUsers = [];
 let memGroups = [{ _id: 'manit-lounge', name: '🏢 MANIT Public Lounge', createdBy: 'system', members: [] }];
 let memMessages = [];
+let memPosts = [];
+let memFollows = [];
 
 // Load from file on start
 if (fs.existsSync(DATA_FILE)) {
@@ -50,13 +54,21 @@ if (fs.existsSync(DATA_FILE)) {
     memUsers = data.users || [];
     memGroups = data.groups || memGroups;
     memMessages = data.messages || [];
+    memPosts = data.posts || [];
+    memFollows = data.follows || [];
     console.log('Demo data loaded from persistence file');
   } catch (e) { console.log('Error loading demo data'); }
 }
 
 function saveToDemoFile() {
   try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({ users: memUsers, groups: memGroups, messages: memMessages }));
+    fs.writeFileSync(DATA_FILE, JSON.stringify({ 
+      users: memUsers, 
+      groups: memGroups, 
+      messages: memMessages,
+      posts: memPosts,
+      follows: memFollows
+    }));
   } catch (e) { console.error('Persistence Save Error:', e.message); }
 }
 
@@ -213,7 +225,118 @@ app.get('/api/messages/:chatId', async (req, res) => {
   }
 });
 
-// Image Proxy to solve SSL/CORS issues
+// --- Coding Community API ---
+
+// Posts
+app.get('/api/community/posts', async (req, res) => {
+  try {
+    // Sort by Number of Likes descending, then by creation date
+    const posts = await CommunityPost.aggregate([
+      {
+        $addFields: {
+          likesCount: { $size: "$likes" }
+        }
+      },
+      {
+        $sort: { likesCount: -1, createdAt: -1 }
+      }
+    ]).maxTimeMS(2000);
+    res.json(posts);
+  } catch (err) {
+    res.json([...memPosts].sort((a,b) => b.likes.length - a.likes.length || new Date(b.createdAt) - new Date(a.createdAt)));
+  }
+});
+
+app.post('/api/community/posts', async (req, res) => {
+  try {
+    const { authorId, authorName, authorPhoto, content, codeSnippet, language, githubLink, deploymentLink } = req.body;
+    if (!content) return res.status(400).json({ error: 'Text content is required' });
+
+    const postData = { 
+      _id: Date.now().toString(),
+      authorId, authorName, authorPhoto, content, codeSnippet, language, githubLink, deploymentLink,
+      likes: [], 
+      createdAt: new Date() 
+    };
+    try {
+      const post = new CommunityPost(postData);
+      await post.save();
+      res.json(post);
+    } catch (dbErr) {
+      memPosts.push(postData);
+      saveToDemoFile();
+      res.json(postData);
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/community/posts/:id/like', async (req, res) => {
+  const postId = req.params.id;
+  const { userId } = req.body;
+  try {
+    const post = await CommunityPost.findById(postId);
+    if (!post) throw new Error('Not found');
+    const idx = post.likes.indexOf(userId);
+    if (idx > -1) post.likes.splice(idx, 1);
+    else post.likes.push(userId);
+    await post.save();
+    res.json({ success: true, likes: post.likes });
+  } catch (err) {
+    const post = memPosts.find(p => p._id === postId);
+    if (post) {
+      const idx = post.likes.indexOf(userId);
+      if (idx > -1) post.likes.splice(idx, 1);
+      else post.likes.push(userId);
+      saveToDemoFile();
+      res.json({ success: true, likes: post.likes });
+    } else {
+      res.status(404).json({ error: 'Post not found' });
+    }
+  }
+});
+
+// Following
+app.post('/api/community/follow', async (req, res) => {
+  const { followerId, followingId } = req.body;
+  try {
+    const f = new Follow({ followerId, followingId });
+    await f.save();
+    res.json({ success: true });
+  } catch (err) {
+    memFollows.push({ followerId, followingId });
+    saveToDemoFile();
+    res.json({ success: true });
+  }
+});
+
+app.post('/api/community/unfollow', async (req, res) => {
+  const { followerId, followingId } = req.body;
+  try {
+    await Follow.deleteOne({ followerId, followingId });
+    res.json({ success: true });
+  } catch (err) {
+    memFollows = memFollows.filter(f => !(f.followerId === followerId && f.followingId === followingId));
+    saveToDemoFile();
+    res.json({ success: true });
+  }
+});
+
+app.get('/api/community/following/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    const following = await Follow.find({ followerId: userId });
+    res.json(following.map(f => f.followingId));
+  } catch (err) {
+    const filtered = memFollows.filter(f => f.followerId === userId).map(f => f.followingId);
+    res.json(filtered);
+  }
+});
+
+// Stories removed per user request
+
+// --- Image Proxy to solve SSL/CORS issues ---
 app.get('/api/proxy-image', async (req, res) => {
   const imageUrl = req.query.url;
   if (!imageUrl) return res.status(400).send('No URL provided');
