@@ -234,13 +234,14 @@ app.get('/api/community/posts', async (req, res) => {
     const posts = await CommunityPost.aggregate([
       {
         $addFields: {
-          likesCount: { $size: "$likes" }
+          // Use $ifNull to handle legacy documents without the 'likes' field
+          likesCount: { $size: { $ifNull: ["$likes", []] } }
         }
       },
       {
         $sort: { likesCount: -1, createdAt: -1 }
       }
-    ]).maxTimeMS(2000);
+    ]).maxTimeMS(5000); // Increased timeout for stability
     res.json(posts);
   } catch (err) {
     res.json([...memPosts].sort((a,b) => b.likes.length - a.likes.length || new Date(b.createdAt) - new Date(a.createdAt)));
