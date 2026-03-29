@@ -606,6 +606,7 @@ async function loadCommunityFeed() {
         const res = await fetch(`${API_BASE}/api/community/posts`);
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
         communityPosts = await res.json();
+        console.log('Community Posts Loaded:', communityPosts); // Helpful for user debugging
         renderFeed();
     } catch (e) {
         console.error('Feed Fetch Error:', e);
@@ -627,6 +628,17 @@ function renderFeed() {
     
     if (activeCommunityTab === 'following') {
         filtered = communityPosts.filter(p => userFollowing.includes(p.authorId) || p.authorId === currentUser.studentId);
+    }
+
+    if (filtered.length === 0) {
+        communityFeed.innerHTML = `
+            <div style="text-align:center; padding:60px 20px; color:var(--text-secondary); opacity:0.6;">
+                <i class="fas fa-newspaper" style="font-size:3em; margin-bottom:15px;"></i>
+                <h3>No posts yet.</h3>
+                <p>Be the first to share your project or follow more peers!</p>
+            </div>
+        `;
+        return;
     }
 
     if (filtered.length === 0) {
