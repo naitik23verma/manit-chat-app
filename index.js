@@ -35,6 +35,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.resolve('./public')));
 
+// Health Check / Wakeup Route for Cron Jobs
+app.get('/health', (req, res) => res.status(200).send('Server is alive!'));
+
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, { bufferCommands: false })
   .then(() => console.log('MongoDB Connected'))
@@ -240,7 +243,7 @@ app.get('/api/community/posts', async (req, res) => {
       {
         $sort: { likesCount: -1, createdAt: -1 }
       }
-    ]).maxTimeMS(8000); // 8s timeout
+    ]).option({ maxTimeMS: 8000 }); // Corrected syntax for timeout
     res.json(posts);
   } catch (err) {
     console.error('Aggregation Failed, using find() fallback:', err.message);
