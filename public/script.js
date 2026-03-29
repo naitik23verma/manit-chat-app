@@ -1,5 +1,7 @@
-// Relative paths for production stability (Vercel/Render unified)
-const API_BASE = ''; 
+// detect if we need to point to a production backend (Render)
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? ''
+    : 'https://manit-chat-app.onrender.com'; // Production URL fallback
 
 const socket = io(API_BASE);
 
@@ -567,12 +569,12 @@ if (communityBackBtn) {
 async function showCommunityPage() {
     communityPage.style.display = 'flex';
     const compAvatar = document.getElementById('composer-avatar');
-    if (currentUser.photoUrl) {
+    
+    if (currentUser && currentUser.photoUrl) {
         compAvatar.src = currentUser.photoUrl;
         compAvatar.style.display = 'block';
     } else {
         compAvatar.style.display = 'none';
-        // Insert placeholder if not already there
         if (!compAvatar.parentElement.querySelector('.avatar-placeholder')) {
             const ph = document.createElement('div');
             ph.className = 'avatar-placeholder';
@@ -590,6 +592,7 @@ async function showCommunityPage() {
 }
 
 async function loadFollowingStatus() {
+    if (!currentUser) return;
     try {
         const res = await fetch(`${API_BASE}/api/community/following/${currentUser.studentId}`);
         userFollowing = await res.json();
