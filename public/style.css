@@ -1249,3 +1249,68 @@ header {
         font-size: 0.85rem;
     }
 }
+
+/* Mobile Chat Navigation Fix */
+@media (max-width: 768px) {
+    .mobile-chat-active .sidebar {
+        display: none !important;
+    }
+
+    .mobile-chat-active .main-chat {
+        display: flex !important;
+    }
+}
+
+/* Chat Back Button Styling for Mobile */
+.chat-mobile-back {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+    margin-right: 15px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .chat-mobile-back {
+        display: flex !important;
+    }
+}
+
+/* Refined Back Button UI */
+.chat-mobile-back {
+    display: none;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-secondary);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-right: 12px;
+}
+
+.chat-mobile-back:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: var(--whatsapp-green);
+    transform: translateX(-2px);
+}
+
+.chat-mobile-back:active {
+    scale: 0.95;
+    background: var(--whatsapp-green) !important;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .chat-mobile-back {
+        display: flex !important;
+    }
+}
