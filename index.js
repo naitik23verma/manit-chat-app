@@ -10,6 +10,10 @@ const jwt = require('jsonwebtoken');
 const https = require('https');
 const fs = require('fs');
 
+// Global Error Handling to prevent 503 crashes on Render
+process.on('uncaughtException', (err) => console.error('Uncaught Exception:', err));
+process.on('unhandledRejection', (reason, promise) => console.error('Unhandled Rejection at:', promise, 'reason:', reason));
+
 const User = require('./models/User');
 const Message = require('./models/Message');
 const Group = require('./models/Group');

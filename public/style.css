@@ -314,7 +314,7 @@ body {
 .marquee-section {
     width: 100%;
     background: var(--whatsapp-green);
-    padding: 15px 0;
+    padding: 25px 0; min-height: 80px;
     overflow: hidden;
     white-space: nowrap;
     position: relative;
