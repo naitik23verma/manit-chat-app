@@ -234,17 +234,24 @@ app.get('/api/community/posts', async (req, res) => {
     const posts = await CommunityPost.aggregate([
       {
         $addFields: {
-          // Use $ifNull to handle legacy documents without the 'likes' field
           likesCount: { $size: { $ifNull: ["$likes", []] } }
         }
       },
       {
         $sort: { likesCount: -1, createdAt: -1 }
       }
-    ]).maxTimeMS(5000); // Increased timeout for stability
+    ]).maxTimeMS(8000); // 8s timeout
     res.json(posts);
   } catch (err) {
-    res.json([...memPosts].sort((a,b) => b.likes.length - a.likes.length || new Date(b.createdAt) - new Date(a.createdAt)));
+    console.error('Aggregation Failed, using find() fallback:', err.message);
+    try {
+      // Emergency Fallback: Just get all posts sorted by date
+      const fallbackPosts = await CommunityPost.find().sort({ createdAt: -1 }).limit(50);
+      res.json(fallbackPosts);
+    } catch (finalErr) {
+      // Final Fallback: Demo Memory
+      res.json([...memPosts].sort((a,b) => b.likes.length - a.likes.length || new Date(b.createdAt) - new Date(a.createdAt)));
+    }
   }
 });
 

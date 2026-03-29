@@ -353,6 +353,7 @@ confirmGroupBtn.addEventListener('click', async () => {
 
 // Fetching Chats (Users + Groups)
 async function loadChats() {
+    if (!currentUser) return; // Exit if not logged in
     try {
         const [groupsRes, usersRes] = await Promise.all([
             fetch(`${API_BASE}/api/groups`, { headers: { 'x-user-id': currentUser.studentId } }),
@@ -603,10 +604,20 @@ async function loadCommunityFeed() {
     communityFeed.innerHTML = '<div class="loader">Loading feed...</div>';
     try {
         const res = await fetch(`${API_BASE}/api/community/posts`);
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
         communityPosts = await res.json();
         renderFeed();
     } catch (e) {
-        communityFeed.innerHTML = 'Error loading posts.';
+        console.error('Feed Fetch Error:', e);
+        communityFeed.innerHTML = `
+            <div style="text-align:center; padding:40px; color:var(--text-secondary);">
+                <i class="fas fa-exclamation-circle" style="font-size:2em; margin-bottom:10px;"></i>
+                <p>Error loading posts: ${e.message}</p>
+                <button class="btn-primary-small" onclick="loadCommunityFeed()" style="margin-top:20px;">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
+            </div>
+        `;
     }
 }
 
