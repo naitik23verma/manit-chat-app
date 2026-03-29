@@ -253,7 +253,6 @@ app.post('/api/community/posts', async (req, res) => {
     if (!content) return res.status(400).json({ error: 'Text content is required' });
 
     const postData = { 
-      _id: Date.now().toString(),
       authorId, authorName, authorPhoto, content, codeSnippet, language, githubLink, deploymentLink,
       likes: [], 
       createdAt: new Date() 
@@ -263,16 +262,18 @@ app.post('/api/community/posts', async (req, res) => {
     if (mongoose.connection.readyState === 1) {
       try {
         const post = new CommunityPost(postData);
-        await post.save();
-        return res.json(post);
+        const savedPost = await post.save();
+        return res.json(savedPost);
       } catch (dbErr) {
         console.error('DB Post Save Error, falling back to mem:', dbErr);
       }
     }
 
-    memPosts.push(postData);
+    // Fallback: Manually set a string _id for the in-memory demo data
+    const demoPostData = { ...postData, _id: Date.now().toString() };
+    memPosts.push(demoPostData);
     saveToDemoFile();
-    res.json(postData);
+    res.json(demoPostData);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
