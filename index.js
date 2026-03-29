@@ -291,24 +291,36 @@ app.post('/api/community/posts/:id/like', async (req, res) => {
   const postId = req.params.id;
   const { userId } = req.body;
   try {
-    const post = await CommunityPost.findById(postId);
-    if (!post) throw new Error('Not found');
-    const idx = post.likes.indexOf(userId);
-    if (idx > -1) post.likes.splice(idx, 1);
-    else post.likes.push(userId);
-    await post.save();
-    res.json({ success: true, likes: post.likes });
-  } catch (err) {
-    const post = memPosts.find(p => p._id === postId);
+    // Try to find the post. If postId is not a valid ObjectId, findOne will return null instead of throwing.
+    let post;
+    if (mongoose.Types.ObjectId.isValid(postId)) {
+        post = await CommunityPost.findById(postId);
+    } else {
+        post = await CommunityPost.findOne({ _id: postId });
+    }
+
     if (post) {
       const idx = post.likes.indexOf(userId);
       if (idx > -1) post.likes.splice(idx, 1);
       else post.likes.push(userId);
+      await post.save();
+      return res.json({ success: true, likes: post.likes });
+    }
+    
+    // Fallback to In-Memory if not in DB
+    const memPost = memPosts.find(p => p._id === postId);
+    if (memPost) {
+      const idx = memPost.likes.indexOf(userId);
+      if (idx > -1) memPost.likes.splice(idx, 1);
+      else memPost.likes.push(userId);
       saveToDemoFile();
-      res.json({ success: true, likes: post.likes });
+      res.json({ success: true, likes: memPost.likes });
     } else {
       res.status(404).json({ error: 'Post not found' });
     }
+  } catch (err) {
+    console.error('Like Error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
