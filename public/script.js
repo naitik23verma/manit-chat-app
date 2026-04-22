@@ -419,6 +419,15 @@ async function loadChats() {
         }
 
         renderChatList(currentGroups, currentUsers);
+
+        // Auto-join all chat rooms to receive background messages
+        currentGroups.forEach(g => socket.emit('join-chat', g._id));
+        currentUsers.forEach(u => {
+            if (u.studentId !== currentUser.studentId) {
+                const chatId = [currentUser.studentId, u.studentId].sort().join('--');
+                socket.emit('join-chat', chatId);
+            }
+        });
     } catch (err) {
         console.error('Error fetching chats:', err);
     }
