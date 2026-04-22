@@ -14,6 +14,51 @@ let communityPosts = [];
 let userFollowing = [];
 let activeCommunityTab = 'global';
 
+let unreadCounts = {};
+
+// --- Utility Helpers ---
+function escapeHTML(str) {
+    const p = document.createElement('p');
+    p.textContent = str;
+    return p.innerHTML;
+}
+
+function parseMessageContent(content) {
+    // Escape HTML first
+    let escaped = escapeHTML(content);
+
+    // Regex for code blocks: ```code```
+    const codeBlockRegex = /```([\s\S]*?)```/g;
+    escaped = escaped.replace(codeBlockRegex, (match, code) => {
+        return `<pre class="code-block">${code.trim()}</pre>`;
+    });
+
+    // Regex for inline code: `code`
+    const inlineCodeRegex = /`([^`]+)`/g;
+    escaped = escaped.replace(inlineCodeRegex, (match, code) => {
+        return `<code>${code}</code>`;
+    });
+
+    return escaped;
+}
+
+function copyMessage(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+        const icon = btn.querySelector('i');
+        const oldClass = icon.className;
+        icon.className = 'fas fa-check';
+        btn.classList.add('copied');
+        
+        setTimeout(() => {
+            icon.className = oldClass;
+            btn.classList.remove('copied');
+        }, 2000);
+    }).catch(err => {
+        console.error('Copy failed:', err);
+    });
+}
+
+
 // DOM Elements
 const loginPage = document.getElementById('login-page');
 const chatPage = document.getElementById('chat-page');
@@ -386,6 +431,7 @@ function renderChatList(groups, users) {
     groups.forEach(chat => {
         const div = document.createElement('div');
         div.className = `chat-item ${activeChatId === chat._id ? 'active' : ''}`;
+        const unread = unreadCounts[chat._id] || 0;
         div.innerHTML = `
             <div class="avatar" style="display:flex; justify-content:center; align-items:center; background:#202c33; margin-right:12px;">
                 <i class="fas fa-users" style="color:#8696a0;"></i>
@@ -393,6 +439,7 @@ function renderChatList(groups, users) {
             <div class="chat-info">
                 <div class="chat-header">
                     <span class="chat-name">${chat.name}</span>
+                    ${unread > 0 ? `<div class="unread-badge">${unread}</div>` : ''}
                 </div>
                 <div class="last-msg">Group Chat</div>
             </div>
@@ -406,6 +453,7 @@ function renderChatList(groups, users) {
         const div = document.createElement('div');
         const chatId = [currentUser.studentId, user.studentId].sort().join('--');
         div.className = `chat-item ${activeChatId === chatId ? 'active' : ''}`;
+        const unread = unreadCounts[chatId] || 0;
         div.innerHTML = `
             <div class="user-profile" style="margin-right:12px;">
                 ${user.photoUrl ? `<img src="${user.photoUrl}" class="avatar">` : `
@@ -416,6 +464,7 @@ function renderChatList(groups, users) {
             <div class="chat-info">
                 <div class="chat-header">
                     <span class="chat-name">${user.fullName}</span>
+                    ${unread > 0 ? `<div class="unread-badge">${unread}</div>` : ''}
                 </div>
                 <div class="last-msg">${user.department || 'Student'}</div>
             </div>
@@ -455,6 +504,7 @@ if (chatSearchInput) {
 // Messaging Logic
 async function selectChat(chat, isGroup) {
     activeChatId = chat._id;
+    unreadCounts[chat._id] = 0; // Reset unread count
     renderChatList(currentGroups, currentUsers);
 
     // Switch to chat view on mobile
@@ -497,13 +547,21 @@ function appendMessage(msg) {
     const div = document.createElement('div');
     div.className = `message ${isOutgoing ? 'outgoing' : 'incoming'}`;
 
+    const processedContent = parseMessageContent(msg.content);
+
     div.innerHTML = `
         ${!isOutgoing ? `<div class="msg-sender">${msg.senderName || msg.sender}</div>` : ''}
-        <div class="msg-content">${msg.content}</div>
+        <button class="copy-btn" title="Copy Message">
+            <i class="far fa-copy"></i>
+        </button>
+        <div class="msg-content">${processedContent}</div>
         <div style="font-size: 0.7em; color: var(--text-secondary); text-align: right; margin-top: 4px;">
             ${new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
     `;
+
+    const copyBtn = div.querySelector('.copy-btn');
+    copyBtn.addEventListener('click', () => copyMessage(msg.content, copyBtn));
 
     messagesContainer.appendChild(div);
     scrollToBottom();
@@ -514,8 +572,18 @@ function scrollToBottom() {
 }
 
 sendMsgBtn.onclick = sendMessage;
-messageInput.onkeypress = (e) => {
-    if (e.key === 'Enter') sendMessage();
+
+// Auto-resize for textarea
+messageInput.addEventListener('input', function() {
+    this.style.height = '40px';
+    this.style.height = (this.scrollHeight) + 'px';
+});
+
+messageInput.onkeydown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault(); // Prevent newline
+        sendMessage();
+    }
 };
 
 function sendMessage() {
@@ -531,6 +599,7 @@ function sendMessage() {
 
     socket.emit('send-message', data);
     messageInput.value = '';
+    messageInput.style.height = '40px'; // Reset height
 }
 
 // Real-time listener
@@ -538,7 +607,9 @@ socket.on('receive-message', (msg) => {
     if (msg.chatId === activeChatId) {
         appendMessage(msg);
     } else {
-        // Refresh sidebar for background messages to update last-msg or visibility
+        // Increment unread count for background messages
+        unreadCounts[msg.chatId] = (unreadCounts[msg.chatId] || 0) + 1;
+        // Refresh sidebar to show badge
         loadChats();
     }
 });
